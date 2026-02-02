@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-benchmark"
+version = "0.1.0"
+description = "Run agent benchmarks in an environment accessed via MCP tools"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastmcp",
+    "langchain-openai",
+    "langchain-core",
+    "python-dotenv",
+    "pydantic>=2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[project.scripts]
+mcp-benchmark = "mcp_benchmark.run:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mcp_benchmark*"]

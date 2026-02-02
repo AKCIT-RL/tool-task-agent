@@ -1,0 +1,6 @@
+# MCP Benchmark - run agent benchmarks via MCP tools
+fastmcp
+langchain-openai
+langchain-core
+python-dotenv
+pydantic>=2
