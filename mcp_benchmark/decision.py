@@ -3,10 +3,10 @@ import logging
 import time
 from typing import Any
 
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, SystemMessage
 
 from .agent_types import InferredWorldState
-from .prompts import ACTION_SELECTOR_PROMPT
+from .prompts import ACTION_SELECTOR_SYSTEM_PROMPT, ACTION_SELECTOR_PROMPT_STATE_ONLY
 
 logger = logging.getLogger(__name__)
 
@@ -93,12 +93,29 @@ async def select_action(
     initial_reasoning: str | None = None,
 ) -> tuple[list[tuple[str, dict]] | None, AIMessage, str]:
     """Select actions via LLM with bound tools. Returns (list of (tool_name, args), ai_message, prompt) or (None, ai_message, prompt)."""
-    initial_section = _format_initial_reasoning_section(initial_reasoning)
-    prompt = ACTION_SELECTOR_PROMPT.format(
-        goal=goal,
-        initial_reasoning_section=initial_section,
+    # Initialize message_history if None
+    if message_history is None:
+        message_history = []
+    
+    # Check if system message already exists in history
+    has_system_message = any(isinstance(msg, SystemMessage) for msg in message_history)
+    
+    # Always use only current state as the prompt
+    prompt = ACTION_SELECTOR_PROMPT_STATE_ONLY.format(
         world_state=world_state,
     )
+    
+    # On first call (no system message yet), add system prompt to the beginning of message history
+    if not has_system_message:
+        initial_section = _format_initial_reasoning_section(initial_reasoning)
+        system_prompt = ACTION_SELECTOR_SYSTEM_PROMPT.format(
+            goal=goal,
+            initial_reasoning_section=initial_section,
+        )
+        system_message = SystemMessage(content=system_prompt)
+        # Insert system message at the beginning
+        message_history.insert(0, system_message)
+    
     logger.debug("Sending action prompt: %s", prompt)
     response = await llm.ainvoke_with_tools(prompt, tools, message_history)
 

@@ -43,14 +43,11 @@ Rules:
 - Return ONLY visual_objects and notes.
 """
 
-ACTION_SELECTOR_PROMPT = ACTION_SELECTOR_PROMPT = """
+ACTION_SELECTOR_SYSTEM_PROMPT = """
 You are controlling an agent in a 3D environment.
 
 GOAL: {goal}
 {initial_reasoning_section}
-
-CURRENT STATE:
-{world_state}
 
 AVAILABLE ACTIONS (tools):
 - Movement: move_ahead, move_back, move_left, move_right
@@ -58,10 +55,11 @@ AVAILABLE ACTIONS (tools):
 - Interaction: pickup_object, put_object, open_object, close_object, toggle_on, toggle_off, slice_object
 
 CRITICAL RULES:
-1. ONLY use object IDs that appear in the current state above
+1. ONLY use object IDs that appear in the current state
 2. Objects without IDs are NOT close enough - you must approach them first
 3. Only interact with objects within 1.9 distance
 4. Use ONE action per turn
+5. Only one object can be picked up at a time or carried at a time
 
 DECISION PROCESS:
 1. Analyze what you see in the current state
@@ -81,6 +79,11 @@ COMMON ISSUES:
 - Object disappeared? → Rotate to find it again
 - Action failed? → Check object state and try a different approach
 - Path blocked? → Clear obstacles (e.g., close_object on doors) or move to another position
+"""
+
+ACTION_SELECTOR_PROMPT_STATE_ONLY = """
+CURRENT STATE:
+{world_state}
 
 Now, explain your reasoning and execute ONE action using the appropriate tool.
 """
